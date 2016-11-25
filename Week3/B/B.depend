@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1478608789 source:/home/eduardpop/Documents/conpra/Week3/B/main.cpp
+	<stdio.h>
+	<vector>
+	<algorithm>
+

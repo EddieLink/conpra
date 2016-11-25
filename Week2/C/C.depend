@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1477569617 source:/home/eduardpop/Documents/conpra/Week2/C/main.cpp
+	<stdio.h>
+	<queue>
+	<list>
+
