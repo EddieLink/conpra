@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1484656420 source:/home/eduardpop/Documents/conpra/Week10/D/main.cpp
+	<iostream>
+	<climits>
+	<cstdlib>
+	<cstring>
+
