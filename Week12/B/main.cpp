@@ -9,6 +9,7 @@ struct Node
 {
 	int c; Node *l, *r;
 	int intLeft, intRight;
+    int markLeft, markRight, markValue;
 
 	bool isLeaf()
 	{
@@ -16,11 +17,13 @@ struct Node
 	}
 	Node(int v, int ind)
 	{
+		resetMark();
 		c = v;
 		intLeft = intRight = ind;
 	}
 	Node(Node* a, Node* b)
 	{
+		resetMark();
 		c = a->c + b->c;
 		l = a; r = b;
 		intLeft = a->intLeft;
@@ -28,6 +31,7 @@ struct Node
 	}
 	Node(vector<int> arr)
 	{
+		resetMark();
 		int i;
 		queue<Node*> q;
 		int n = arr.size();
@@ -60,41 +64,42 @@ struct Node
 			q.push(new Node(a,b));
 		}
 	}
+
 	bool inInterval(int ind)
 	{
 		return ind >= intLeft && ind <= intRight;
 	}
-	void add(int left, int right = -1, int value = 0)
+	void add(int ind, int value)
 	{
-		if(right == -1) right = left;
-		if(left > right)
-		{
-			add(right, left, value);
-			return;
-		}
-		if(right > left)
-		{
-			for(int i = left; i<=right; i++)
-				add(i, i, value);
-			return;
-		}
+		propagate();
 		c += value;
 		Node* nxt;
 		if(!isLeaf())
 		{
-			if(l->inInterval(left)) nxt = l;
+			if(l->inInterval(ind)) nxt = l;
 			else nxt = r;
-			nxt->add(left, left, value);
+			nxt->add(ind, value);
 		}
+	}
+
+	void add(int left, int right, int value)
+	{
+		propagate();
+		c+=value * (right-left + 1);
+		if(isLeaf())
+			return;
+		l->updateMarkInters(left, right, value);
+		r->updateMarkInters(left, right, value);
 	}
 	int getSum(int left, int right = -1)
 	{
+		propagate();
 		if(right == -1) right = left;
 		if(intLeft == left && intRight == right)
 			return c;
 		int s = 0, lInt, rInt;
 		l->getIntersection(&lInt, &rInt, left, right);
-		if(lInt != -1)
+		if(lInt!=-1)
 			s+=l->getSum(lInt, rInt);
 		r->getIntersection(&lInt, &rInt, left,right);
 		if(lInt != -1)
@@ -109,6 +114,16 @@ struct Node
 	}
 
 	private:
+	void updateMarkInters(int left, int right, int value)
+	{
+		int lInt, rInt;
+		getIntersection(&lInt, &rInt, left, right);
+		if(lInt!=-1)
+		{
+			propagate();
+			updateMark(lInt, rInt, value);
+		}
+	}
 	void getIntersection(int* left, int *right, int a, int b)
 	{
 		*left = max(intLeft, a);
@@ -123,6 +138,35 @@ struct Node
 			*right = *left = -1;
 			return;
 		}
+	}
+	void resetMark()
+	{
+		markLeft = markRight = markValue = -1;
+	}
+	void updateMark(int left, int right, int value)
+	{
+		markLeft = left;
+		markRight = right;
+		markValue = value;
+	}
+	bool isMarked()
+	{
+		return markLeft != -1;
+	}
+	void propagate()
+	{
+		if(!isMarked())
+			return;
+		if(isLeaf())
+		{
+			c+=markValue;
+			resetMark();
+			return;
+		}
+		c+=markValue * (markRight - markLeft + 1);
+		l->updateMarkInters(markLeft, markRight, markValue);
+		r->updateMarkInters(markLeft, markRight, markValue);
+		resetMark();
 	}
 };
 int solve()
@@ -139,18 +183,20 @@ int solve()
 		{
 			int x; cin>>x;
 			val+=root.getSum(x-1) % lim;
+
 		}
 		else
 		{
 			int l, r, v; cin>>l>>r>>v;
 			root.add(l-1,r-1,v);
+
 		}
 	}
 	return val % lim;
 }
 int main()
 {
-	freopen("input", "r", stdin);
+	freopen("input","r",stdin);
 	int t; cin>>t;
 	for(int z = 1; z<=t; z++)
 		cout<<"Case #"<<z<<": "<<solve()<<"\n";
