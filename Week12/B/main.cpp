@@ -8,7 +8,7 @@ struct Node
 {
 	int c; Node *l, *r;
 	int intLeft, intRight;
-	int markLeft, markRight, markValue;
+	int markValue;
 
 	bool isLeaf()
 	{
@@ -88,11 +88,11 @@ struct Node
 
 	void add(int left, int right, int value)
 	{
+		propagate();
 		c+=value * (right-left + 1);
 		if(isLeaf())
 			return;
-		l->updateMarkInters(left, right, value);
-		r->updateMarkInters(left, right, value);
+		updateMarkInters(left, right, value);
 	}
 	int getSum(int left, int right = -1)
 	{
@@ -135,24 +135,31 @@ struct Node
 	}
 	void resetMark()
 	{
-		markLeft = markRight = markValue = -1;
+		markValue = 0;
 	}
 	void updateMarkInters(int left, int right, int value)
 	{
-		int iL, iR;
-		getIntersection(&iL, &iR, left, right);
-		updateMark(iL, iR, value);
+		if(left == intLeft && right == intRight || isLeaf())
+		{
+			updateMark(left, right, value);
+			return;
+		}
+		int il, ir;
+		l->getIntersection(&il, &ir, left, right);
+		if(il!=-1)
+			l->updateMarkInters(il, ir, value);
+		r->getIntersection(&il, &ir, left, right);
+		if(il!=-1)
+			r->updateMarkInters(left, right, value);
 	}
 	void updateMark(int left, int right, int value)
 	{
 		propagate();
-		markLeft = left;
-		markRight = right;
 		markValue = value;
 	}
 	void propagate()
 	{
-		if(markLeft == -1)
+		if(markValue == -1)
 			return;
 		if(isLeaf())
 		{
@@ -160,9 +167,10 @@ struct Node
 			resetMark();
 			return;
 		}
-		c+=(markRight- markLeft + 1) * markValue;
-		l->updateMarkInters(markLeft, markRight, markValue);
-		r->updateMarkInters(markLeft, markRight, markValue);
+		c+=(intRight - intLeft + 1) * markValue;
+
+		l->markValue+=markValue;
+		r->markValue+=markValue;
 
 		resetMark();
 	}
@@ -193,7 +201,6 @@ int solve()
 }
 int main()
 {
-	freopen("input","r",stdin);
 	int t; cin>>t;
 	for(int z = 1; z<=t; z++)
 		cout<<"Case #"<<z<<": "<<solve()<<"\n";

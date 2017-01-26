@@ -7,8 +7,8 @@ int main()
 {
 	freopen("inputGen","w",stdout);
 	srand(time(NULL));
-	int n = 100000;
-	int k = 1000;
+	int n = 1000000;
+	int k = 10000;
 	cout<<1<<"\n"<<n<<" "<<k<<endl;
 	for(int i =0; i<k; i++)
 	{
