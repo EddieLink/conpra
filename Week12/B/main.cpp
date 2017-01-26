@@ -4,12 +4,11 @@
 #include <algorithm>
 using namespace std;
 
-
 struct Node
 {
 	int c; Node *l, *r;
 	int intLeft, intRight;
-    int markLeft, markRight, markValue;
+	int markLeft, markRight, markValue;
 
 	bool isLeaf()
 	{
@@ -29,6 +28,22 @@ struct Node
 		intLeft = a->intLeft;
 		intRight = b->intRight;
 	}
+	Node(int n, int left, int right)
+	{
+		if(left > right)
+			return;
+		c = 0; resetMark();
+		if(left == right)
+		{
+			intLeft = intRight = left;
+			return;
+		}
+		n = (1<<(int)ceil(log2(n)));
+		right = max(right, n-1);
+		intLeft = left; intRight = right;
+        l = new Node(n/2, left, ((left+right)/2));
+        r = new Node(n/2, ((left+right)/2)+1, right);
+	}
 	Node(vector<int> arr)
 	{
 		resetMark();
@@ -47,6 +62,7 @@ struct Node
 				b = new Node(arr[i+1], i+1);
 			else
 				b = new Node(0, i+1);
+
 			q.push(new Node(a,b));
 		}
 		while(!q.empty())
@@ -69,22 +85,9 @@ struct Node
 	{
 		return ind >= intLeft && ind <= intRight;
 	}
-	void add(int ind, int value)
-	{
-		propagate();
-		c += value;
-		Node* nxt;
-		if(!isLeaf())
-		{
-			if(l->inInterval(ind)) nxt = l;
-			else nxt = r;
-			nxt->add(ind, value);
-		}
-	}
 
 	void add(int left, int right, int value)
 	{
-		propagate();
 		c+=value * (right-left + 1);
 		if(isLeaf())
 			return;
@@ -98,9 +101,10 @@ struct Node
 		if(intLeft == left && intRight == right)
 			return c;
 		int s = 0, lInt, rInt;
-		l->getIntersection(&lInt, &rInt, left, right);
+			l->getIntersection(&lInt, &rInt, left, right);
 		if(lInt!=-1)
 			s+=l->getSum(lInt, rInt);
+
 		r->getIntersection(&lInt, &rInt, left,right);
 		if(lInt != -1)
 			s+=r->getSum(lInt,rInt);
@@ -114,16 +118,6 @@ struct Node
 	}
 
 	private:
-	void updateMarkInters(int left, int right, int value)
-	{
-		int lInt, rInt;
-		getIntersection(&lInt, &rInt, left, right);
-		if(lInt!=-1)
-		{
-			propagate();
-			updateMark(lInt, rInt, value);
-		}
-	}
 	void getIntersection(int* left, int *right, int a, int b)
 	{
 		*left = max(intLeft, a);
@@ -143,19 +137,22 @@ struct Node
 	{
 		markLeft = markRight = markValue = -1;
 	}
+	void updateMarkInters(int left, int right, int value)
+	{
+		int iL, iR;
+		getIntersection(&iL, &iR, left, right);
+		updateMark(iL, iR, value);
+	}
 	void updateMark(int left, int right, int value)
 	{
+		propagate();
 		markLeft = left;
 		markRight = right;
 		markValue = value;
 	}
-	bool isMarked()
-	{
-		return markLeft != -1;
-	}
 	void propagate()
 	{
-		if(!isMarked())
+		if(markLeft == -1)
 			return;
 		if(isLeaf())
 		{
@@ -163,17 +160,18 @@ struct Node
 			resetMark();
 			return;
 		}
-		c+=markValue * (markRight - markLeft + 1);
+		c+=(markRight- markLeft + 1) * markValue;
 		l->updateMarkInters(markLeft, markRight, markValue);
 		r->updateMarkInters(markLeft, markRight, markValue);
+
 		resetMark();
 	}
 };
 int solve()
 {
 	int n, k; cin>>n>>k;
-	vector<int> arr = vector<int>(n,0);
-	Node root(arr);
+	vector<int> arr = vector<int>(n, 0);
+    Node root(arr);
 	int val = 0; int lim = 1000000007;
 	for(int i =0; i<k; i++)
 	{
@@ -183,16 +181,15 @@ int solve()
 		{
 			int x; cin>>x;
 			val+=root.getSum(x-1) % lim;
-
+			val%=lim;
 		}
 		else
 		{
 			int l, r, v; cin>>l>>r>>v;
 			root.add(l-1,r-1,v);
-
 		}
 	}
-	return val % lim;
+	return val;
 }
 int main()
 {
