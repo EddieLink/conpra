@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1485639117 source:/home/eduardpop/Documents/conpra/Week12/C/main.cpp
+	<iostream>
+	<vector>
+	<queue>
+	<climits>
+	<tuple>
+	<algorithm>
+

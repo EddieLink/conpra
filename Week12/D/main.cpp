@@ -182,50 +182,17 @@ struct Node
 		resetMark();
 	}
 };
-int _i;
-void displayTree(Node* root)
-{
-	queue<tuple<Node*,int>> q;
-	cout<<root->c<<"\n";
-	if(!root->isLeaf())
-	{
-		q.push(make_tuple(root->l,1));
-		q.push(make_tuple(root->r, 1));
-	}
-	int lvl = 1;
-	while(!q.empty())
-	{
-		Node* it = get<0>(q.front());
-		int newLvl = get<1>(q.front()); q.pop();
-		if(newLvl > lvl)
-		{
-			lvl++;
-			cout<<endl;
-		}
-		cout<<it->c<<" ";
-		if(!it->isLeaf())
-		{
-			q.push(make_tuple(it->l, lvl+1));
-			q.push(make_tuple(it->r, lvl+1));
-		}
-
-	}
-	cout<<endl;
-
-}
 string solve()
 {
 	int n, k; cin>>n>>k;
 	vector<int> arr = vector<int>(n);
-    //Node root(n,0,n-1);
     Node root(arr);
     vector<int> sol;
-	for(_i =0; _i<k; _i++)
+	for(int _i =0; _i<k; _i++)
 	{
 		int w, h, p; cin>>w>>h>>p;
 		root.add(p, p+w-1, h);
 		sol.push_back(root.getMax(0));
-		//displayTree(&root); cout<<endl;
 	}
 
 	string s = "";
@@ -236,7 +203,6 @@ string solve()
 }
 int main()
 {
-	freopen("input2","r",stdin);
 	int t; cin>>t;
 	for(int z = 1; z<=t; z++)
 		cout<<"Case #"<<z<<": "<<solve()<<"\n";
