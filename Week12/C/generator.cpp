@@ -11,7 +11,7 @@ int main()
 	for(int z = 0; z<t; z++)
 	{
 		int n,m,k,l;
-		n = rand()%100 + 1;
+		n = rand()%1000 + 1;
 		m = rand()%10001;
 		k = rand()%n + 1;
 		l = rand()%1001;

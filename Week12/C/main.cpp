@@ -19,7 +19,6 @@ string solve()
   typedef vector<int> vInt;
   typedef vector<bool> vBool;
   vector<halv> v = vector<halv>(n);
-  int minL = INT_MAX;
   for(int i =0; i<m; i++)
 	{
     int ai,bi,li; cin>>ai>>bi>>li;
@@ -38,47 +37,52 @@ string solve()
 	int currentD = l;
 
 	deque<int> q; q.push_front(0);
+	queue<int> q2;
 	vector<int> used = vector<int>(n, -1);
 	int visited = 1;
-	auto comp = [contr](int a, int b){
-		return contr[a] < contr[b];
+	typedef tuple<int,int> tup;
+	auto comp = [](tup a, tup b){
+		return get<0>(a) < get<0>(b);
 	};
-	int maxL = -INT_MAX;
-	priority_queue<int, vector<int>, decltype(comp)> pq(comp);
-	used[0] = currentD;
+	int minL = INT_MAX;
+	priority_queue<tup, vector<tup>, decltype(comp)> pq(comp);
 	while(!q.empty())
 	{
 		int id = q.front(); q.pop_front();
+		used[id] = currentD;
 		if(contr[id] != -1)
-			pq.push(id);
+			minL = min(minL, contr[id]);
 		for(int i =0; i<v[id].size(); i++)
 		{
 			int room = v[id][i].room;
-			if(currentD <= v[id][i].level && (used[room] == -1 || used[room] > currentD))
-			{
-				q.push_front(room);
-				if(used[room] == -1 && id != room)
+			if(used[room] == -1)
+				if(v[id][i].level >= currentD)
+				{
+					q.push_front(room);
 					visited++;
-				used[room] = currentD;
-			}
-			else if(currentD > v[id][i].level && (used[room] == -1 || used[room] > currentD))
-				maxL = max(maxL, v[id][i].level);
+					used[room] = currentD;
+				}
+				else
+					pq.push(make_tuple(v[id][i].level, room));
 		}
 		if(visited >= n)
-			return to_string(currentD);
+			break;
 		if(q.empty())
 		{
 			if(!pq.empty())
 			{
-				int id2 = pq.top(); pq.pop();
-				currentD = min(currentD, max(contr[id2], maxL));
-				maxL = -INT_MAX;
-				if(currentD <= contr[id2])
-					contr[id2] = -1;
-				if(used[id2] == -1)
-					visited++;				
-				used[id2] = currentD;
-				q.push_front(id2);
+				tup x = pq.top(); pq.pop();
+				int level, room;
+				level = get<0>(x);
+				room = get<1>(x);
+				if(minL <= level)
+				{
+					currentD = level;
+					q.push_front(room);
+					if(used[room] == -1)
+						visited++;
+					used[room] = currentD;
+				}
 			}
 		}
 	}
