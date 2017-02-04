@@ -98,39 +98,14 @@ struct Node
 		else
 			r->add(left, value);
 	}
-	int setZero(int left, int right)
+	void setZero(int left, int right)
 	{
 		propagate();
-		int oldC = c;
-		if(isLeaf()) 
-		{
-			c = 0;
-			resetMark();
-			return oldC;
-		}
-		if(left == intLeft && right == intRight)
-		{
-			c = 0;
-			l->updateSetMark(0);
-			r->updateSetMark(0);
-			return oldC;
-		}
-		int a,b;
-		l->getIntersection(&a, &b, left, right);
-		int dec1, dec2;
-		dec1 = dec2 = 0;
-		if(a != -1)
-		{
-			dec1 = l->setZero(a,b);
-			c-=dec1;
-		}
-		r->getIntersection(&a, &b, left, right);
-		if(a != -1)
-		{
-			dec2 = r->setZero(a,b);
-			c-=dec2;
-		}
-		return dec1+dec2;
+
+		c-=getSum(left,right);
+		l->updateMarkInters(left, right);
+		r->updateMarkInters(left, right);
+
 	}
 	int getSum(int left, int right = -1)
 	{
@@ -175,45 +150,37 @@ struct Node
 	{
 		markLeft = markRight = -1;
 	}
-	void updateMarkInters(int left, int right, int value)
+	void updateMarkInters(int left, int right)
 	{
-		if(left == intLeft && right == intRight)
-		{
-			updateSetMark(value);
-			return;
-		}
-		if(isLeaf())
-		{
-			c = value;
-			setMark = -1;
-			return;
-		}
-		int il, ir;
-		l->getIntersection(&il, &ir, left, right);
-		if(il!=-1)
-			l->updateMarkInters(il, ir, value);
-		r->getIntersection(&il, &ir, left, right);
-		if(il!=-1)
-			r->updateMarkInters(left, right, value);
+		int a, b;
+		l->getIntersection(&a, &b, left, right);
+		if(a != -1)
+			l->setMark(left, right);
+		r->getIntersection(&a, &b, left, right);
+		if(a != -1)
+			r->setMark(left, right);
 	}
-	void updateSetMark(int value)
+	void setMark(int left, int right)
 	{
 		propagate();
-		setMark = value;		
+		markLeft = left; markRight = right;
 	}
 	void propagate()
 	{
-		if(setMark == -1)
+		if(markLeft == -1 || markRight == -1)
 			return;
 		if(isLeaf())
 		{
-			c = setMark;
+			c = 0; 
 			resetMark();
 			return;
 		}
-		c = 0;
-		l->updateSetMark(0);
-		r->updateSetMark(0);
+		if(markleft == left && markRight == right)
+			c = 0;
+		else 
+			c-=getSum(markLeft, markRight);
+		l->updateMarkInters(markLeft, markRight);
+		r->updateMarkInters(markLeft, markRight);
 		resetMark();
 	}
 };
