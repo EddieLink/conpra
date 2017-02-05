@@ -9,7 +9,7 @@ struct Node
 {
 	int c; Node *l, *r;
 	int intLeft, intRight;
-	int markLeft, markRight;
+	bool mark;
 
 	bool isLeaf()
 	{
@@ -24,6 +24,7 @@ struct Node
 	Node(Node* a, Node* b)
 	{
 		resetMark();
+
 		c = a->c + b->c;
 		l = a; r = b;
 		intLeft = a->intLeft;
@@ -33,7 +34,9 @@ struct Node
 	{
 		if(left > right)
 			return;
-		c = 0; resetMark();
+		c = 0; 
+		resetMark();
+		
 		if(left == right)
 		{
 			intLeft = intRight = left;
@@ -48,6 +51,7 @@ struct Node
 	Node(vector<int> arr)
 	{
 		resetMark();
+
 		int i;
 		queue<Node*> q;
 		int n = arr.size();
@@ -102,10 +106,10 @@ struct Node
 	{
 		propagate();
 
-		c-=getSum(left,right);
-		l->updateMarkInters(left, right);
-		r->updateMarkInters(left, right);
-
+		if(isLeaf())
+			return;
+		updateMarkInters(left,right);
+	
 	}
 	int getSum(int left, int right = -1)
 	{
@@ -148,40 +152,51 @@ struct Node
 	}
 	void resetMark()
 	{
-		markLeft = markRight = -1;
+		mark = false;
 	}
-	void updateMarkInters(int left, int right)
+	int updateMarkInters(int left, int right)
 	{
+		if(isLeaf() || (left == intLeft && right == intRight))
+		{
+			setMark();
+			int oldC = c;
+			c = 0;
+			return oldC;
+		}
 		int a, b;
 		l->getIntersection(&a, &b, left, right);
+		int val = 0;
 		if(a != -1)
-			l->setMark(left, right);
+		{
+			int x = l->updateMarkInters(a,b);
+			val+=x;
+			c-=x;
+		}
 		r->getIntersection(&a, &b, left, right);
 		if(a != -1)
-			r->setMark(left, right);
+		{
+
+			int x =r->updateMarkInters(a, b);
+			val+=x;
+			c-=x;
+		}
+		return val;
 	}
-	void setMark(int left, int right)
+	void setMark()
 	{
-		propagate();
-		markLeft = left; markRight = right;
+		// propagate();
+		mark = true;
 	}
 	void propagate()
 	{
-		if(markLeft == -1 || markRight == -1)
-			return;
-		if(isLeaf())
-		{
-			c = 0; 
-			resetMark();
-			return;
-		}
-		if(markleft == left && markRight == right)
-			c = 0;
-		else 
-			c-=getSum(markLeft, markRight);
-		l->updateMarkInters(markLeft, markRight);
-		r->updateMarkInters(markLeft, markRight);
+		if(!mark) return;
 		resetMark();
+		c = 0; 
+		if(isLeaf())
+			return;
+
+		l->setMark();
+		r->setMark();
 	}
 };
 void displayTree(Node* root)
@@ -233,12 +248,10 @@ int solve()
 			case 'd':
 			{
 				int x; cin>>x; x--;
-				int y = root.getSum(x);
-				if(y > 0)
-				{
+				if(root.getSum(x) > 0)
 					root.add(x,-1);
-					// cout<<"Removed "<<x<<": "<<root.getSum(x)<<"\n";
-				}
+
+				// cout<<"Removed "<<x<<": "<<root.getSum(x)<<"\n";
 
 				break;
 			}
@@ -259,7 +272,7 @@ int solve()
 }
 int main()
 {
-	// freopen("input","r",stdin);
+	// freopen("inputGen","r",stdin);
 	int t; cin>>t;
 	for(int z = 1; z<=t; z++)
 		cout<<"Case #"<<z<<": "<<solve()<<"\n";
